@@ -1,0 +1,23 @@
+name: Build Postfix Docker Image
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "15 6 * * THU"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Login to GitHub Container Registry
+        run: docker login ghcr.io --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
+      - name: Build Postfix Docker image
+        run: docker build --pull --tag postfix ./postfix
+      - name: Tag and push image
+        run: |
+          IMAGE_VERSION=$(docker run --entrypoint /bin/sh postfix -c 'apk version postfix | awk '"'"'$1~"postfix.+" {print $3;}'"'")
+          docker tag postfix "ghcr.io/patrick246/mail/postfix:$IMAGE_VERSION"
+          docker push "ghcr.io/patrick246/mail/postfix:$IMAGE_VERSION"

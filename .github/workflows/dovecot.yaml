@@ -1,0 +1,23 @@
+name: Build Dovecot Docker Image
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "5 6 * * THU"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Login to GitHub Container Registry
+        run: docker login ghcr.io --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
+      - name: Build Dovecot Docker image
+        run: docker build --pull --tag dovecot ./dovecot
+      - name: Tag and push image
+        run: |
+          IMAGE_VERSION=$(docker run --entrypoint /bin/sh dovecot -c 'apk version dovecot | awk '"'"'$1~"dovecot.+" {print $3;}'"'")
+          docker tag dovecot "ghcr.io/patrick246/mail/dovecot:$IMAGE_VERSION"
+          docker push "ghcr.io/patrick246/mail/dovecot:$IMAGE_VERSION"

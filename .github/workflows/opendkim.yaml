@@ -1,6 +1,9 @@
 name: Build OpenDKIM Docker Image
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - main
@@ -11,10 +14,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Login to GitHub Container Registry
+        if: github.ref == 'refs/heads/main'
         run: docker login ghcr.io --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
       - name: Build OpenDKIM Docker image
         run: docker build --pull --tag opendkim ./opendkim
       - name: Tag and push image
+        if: github.ref == 'refs/heads/main'
         run: |
           IMAGE_VERSION=$(docker run --entrypoint /bin/sh opendkim -c 'apk version opendkim | awk '"'"'$1~"opendkim.+" {print $3;}'"'")
           docker tag opendkim "ghcr.io/patrick246/mail/opendkim:$IMAGE_VERSION"

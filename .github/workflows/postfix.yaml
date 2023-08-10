@@ -1,6 +1,9 @@
 name: Build Postfix Docker Image
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - main
@@ -11,10 +14,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Login to GitHub Container Registry
+        if: github.ref == 'refs/heads/main'
         run: docker login ghcr.io --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
       - name: Build Postfix Docker image
         run: docker build --pull --tag postfix ./postfix
       - name: Tag and push image
+        if: github.ref == 'refs/heads/main'
         run: |
           IMAGE_VERSION=$(docker run --entrypoint /bin/sh postfix -c 'apk version postfix | awk '"'"'$1~"postfix.+" {print $3;}'"'")
           docker tag postfix "ghcr.io/patrick246/mail/postfix:$IMAGE_VERSION"

@@ -1,4 +1,4 @@
-FROM alpine:3.18
+FROM alpine:3.19
 EXPOSE 143 993
 RUN addgroup -g 103 -S dovemail && adduser --ingroup dovemail --uid 102 --system --no-create-home --disabled-password dovemail
 
